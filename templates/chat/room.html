@@ -1,0 +1,66 @@
+<html>
+    <head>
+
+    </head>
+<!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.1.js" integrity="sha256-3zlB5s2uwoUzrXK3BT7AX3FyvojsraNFxCc2vC/7pNI=" crossorigin="anonymous"></script>    <title>Chatroom</title>
+    <body>
+        <h1>This is my {{room.name}} chatroom</h1>
+        <div id="display">
+            <div class="cont-dark">
+
+            </div>    
+        </div>
+        <br><br>
+        <form id="send-form">
+            {% csrf_token %}
+            <input type="hidden" id="room" name="room" value="{{room.name}}">
+            <input type="hidden" id="user" name="user" value="{{user.username}}">
+            <input type="text" id="message" name="message" placeholder="Type message here...">
+            <input type="submit" value="Send">
+        </form>
+    </body>
+    <script>
+        $(document).ready(function(){
+
+            setInterval(function(){
+                $.ajax({
+                    type:'GET',
+                    url: '/getMessages/{{room.name}}/',
+                    success: function(response){
+                        console.log(response);
+                        $('#display').empty();
+                        for (var key in response.messages){
+                            var temp = "<div class='cont-dark'><b>"+response.messages[key].text_msg+"</b></div>";
+                            $('#display').append(temp);
+                        }
+                    },
+                    error: function(response){
+                        console.log(response);
+                    }
+                });
+            }, 100);
+        })
+    </script>
+    <script type="text/javascript">
+        $(document).on('submit', '#send-form', function(e){
+            e.preventDefault();
+
+            $.ajax({
+                type: 'POST',
+                url:'/send/',
+                data:{
+                    room:$('#room').val(),
+                    user:$('#user').val(),
+                    message:$('#message').val(),
+                    csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+                },
+                success: function(data){
+                    console.log('Data was sent...')
+                }
+            });
+            document.getElementById('message').value = ''
+            });
+    </script>
+</html>
